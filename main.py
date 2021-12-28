@@ -15,7 +15,7 @@ print ('Start Program')
 print('-'*40)
 print (datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 
-# first decompress the files in the target folder
+# first decompress the files in the target folder - need to make this an argument
 
 target_folder = 'F:\TCXConvert'
 #'F:\StravaImport2DB\AllGPX'
