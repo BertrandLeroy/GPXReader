@@ -3,14 +3,10 @@ import pandas as pd
 import numpy as np
 import pyodbc
 
-def importActivitiesFileIntoDB(file_name):
+def importActivitiesFileIntoDB(file_name, server_name, db_name, schema_name, table_name):
 
     print(pyodbc.version)
 
-
-    server_name='DESKTOP-5QTQUJH\DEV_INSTANCE'
-    db_name='Tracks'
-    
     data = pd.read_csv (file_name)   
     df = pd.DataFrame(data, columns= ['Activity ID','Activity Date','Activity Name','Activity Type','Elapsed Time','Distance','Relative Effort','Commute','Activity Gear','Filename','Athlete Weight','Bike Weight','Moving Time','Max Speed','Average Speed','Elevation Gain','Elevation Loss','Elevation Low','Elevation High','Max Grade','Average Grade','Average Positive Grade','Average Negative Grade','Average Cadence','Max Cadence','Max Heart Rate','Average Heart Rate','Max Watts','Average Watts','Calories','Max Temperature','Average Temperature','Total Work','Number of Runs','Uphill Time','Downhill Time','Other Time','Perceived Exertion','Weighted Average Power','Power Count','Prefer Perceived Exertion','Perceived Relative Effort','Total Weight Lifted','From Upload','Grade Adjusted Distance','Weather Observation Time','Weather Condition','Weather Temperature','Apparent Temperature','Dewpoint','Humidity','Weather Pressure','Wind Speed','Wind Gust','Wind Bearing','Precipitation Intensity','Sunrise Time','Sunset Time','Moon Phase','Bike','Gear','Precipitation Probability','Precipitation Type','Cloud Cover','Weather Visibility','UV Index','Weather Ozone'])
     
@@ -103,14 +99,15 @@ def importActivitiesFileIntoDB(file_name):
     #print(df)
 
     conn = pyodbc.connect('Driver={SQL Server Native Client 11.0};'
-                      'Server=DESKTOP-5QTQUJH\DEV_INSTANCE;'
-                      'Database=Tracks;'
+                      'Server=' + server_name + ';'
+                      'Database=' + db_name + ';'
                       'Trusted_Connection=yes;')
     cursor = conn.cursor()
 
     print('Truncating Staging Activities table')
     try:
-        cursor.execute('''TRUNCATE TABLE Tracks.STG.Activities''')
+        #cursor.execute('''TRUNCATE TABLE Tracks.STG.Activities''')
+        cursor.execute('''TRUNCATE TABLE ''' + db_name + '''.''' + schema_name + '''.''' + table_name)
     except Exception as e: 
         print(e)
         
@@ -118,7 +115,7 @@ def importActivitiesFileIntoDB(file_name):
 
         try:
             cursor.execute('''
-                INSERT INTO Tracks.STG.Activities ([Activity_ID], [Activity_Date],[Activity_Name],[Activity_Type],[Elapsed_Time],[Distance],[Commute],[Activity_Gear],[Filename] 
+                INSERT INTO ''' + db_name + '''.''' + schema_name + '''.''' + table_name + ''' ([Activity_ID], [Activity_Date],[Activity_Name],[Activity_Type],[Elapsed_Time],[Distance],[Commute],[Activity_Gear],[Filename] 
                 ,[Relative_Effort]
                 ,[Athlete_Weight]
                 ,[Bike_Weight]
@@ -262,59 +259,32 @@ def importActivitiesFileIntoDB(file_name):
 
     conn.commit()
 
-#def ImportGPXFileIntoDB(file_name):
-#    server_name='DESKTOP-A6J6D7Q\LEROYB_INSTANCE'
-#    db_name='Tracks'
+def ImportGPXFileIntoDB(dir_name, server_name, db_name, schema_name, table_name):
 
-#    f = open(file_name,"r")
-#    string = f.read()
-    
-#    conn = pyodbc.connect('Driver={SQL Server};'
-#                      'Server=DESKTOP-A6J6D7Q\LEROYB_INSTANCE;'
-#                      'Database=Tracks;'
-#                      'Trusted_Connection=yes;')
-#    cursor = conn.cursor()
-
-#    try:
-#        cursor.execute('''
-#            INSERT INTO Tracks.STG.GPXFiles ([GPXFile_Name],[GPXFile_Contents])
-#            VALUES (?,?)
-#            ''',
-#            file_name, string
-#            )
-#    except Exception as e: 
-#        print(row)
-#        print(e)
-
-#    conn.commit()
-
-def ImportGPXFileIntoDB(dir_name):
-    server_name='DESKTOP-A6J6D7Q\LEROYB_INSTANCE'
-    db_name='Tracks'
-    GPXextension = '.gpx'
+    GPXextension = ('.gpx', '.tcx')
 
     os.chdir(dir_name) # change directory from working dir to dir with files
 
     conn = pyodbc.connect('Driver={SQL Server Native Client 11.0};'
-                              'Server=DESKTOP-A6J6D7Q\LEROYB_INSTANCE;'
-                              'Database=Tracks;'
-                              'Trusted_Connection=yes;')
+                      'Server=' + server_name + ';'
+                      'Database=' + db_name + ';'
+                      'Trusted_Connection=yes;')
     cursor = conn.cursor()
 
     print('Truncating Staging GPXFiles table')
     
     try:
-        cursor.execute('''TRUNCATE TABLE Tracks.STG.GPXFiles''')
+        cursor.execute('''TRUNCATE TABLE ''' + db_name + '''.''' + schema_name + '''.''' + table_name)
     except Exception as e: 
         print(e)
 
     for item in os.listdir(dir_name): # loop through items in dir
-        if item.endswith(GPXextension): # check for ".zip" extension
+        if item.endswith(GPXextension): # check for extension
             file_name = os.path.abspath(item) # get full path of files
             
             #ImportFilesIntoDB.ImportGPXFileIntoDB(file_name)
             f = open(file_name,"r")
-            string = f.read()            
+            file_contents = f.read()            
             f.close() # close file
 
             #print(string)
@@ -325,7 +295,7 @@ def ImportGPXFileIntoDB(dir_name):
                     INSERT INTO Tracks.STG.GPXFiles ([GPXFile_Name],[GPXFile_Contents])
                     VALUES (?,?)
                     ''',
-                    file_name, string
+                    file_name, file_contents
                     )
                 
             except Exception as e: 

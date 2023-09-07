@@ -139,6 +139,26 @@ def unGZipTheFiles(Source_Folder, target_folder, DeleteSwitch):
             if DeleteSwitch == "Yes":
                 os.remove(file_name) # delete zipped file
 
+
+def CleanTCXFiles(dir_name):
+    # https://stackoverflow.com/questions/31346790/unzip-all-zipped-files-in-a-folder-to-that-same-folder-using-python-2-7-5
+    #dir_name = 'C:\\SomeDirectory'
+    extension = '.tcx'
+
+    os.chdir(dir_name) # change directory from working dir to dir with files
+
+    for item in os.listdir(dir_name): # loop through items in dir
+        if item.endswith(extension): # check for ".zip" extension
+            file_name = os.path.abspath(item) # get full path of files
+            
+            file_contents = Path(file_name).read_text()
+            
+            file_contents = file_contents.strip()
+            
+            with open(file_name, "w") as text_file:
+                print(file_contents, file=text_file)
+                
+                
 def convertTheFilesFromTCX(dir_name):
     # https://stackoverflow.com/questions/31346790/unzip-all-zipped-files-in-a-folder-to-that-same-folder-using-python-2-7-5
     #dir_name = 'C:\\SomeDirectory'

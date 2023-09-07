@@ -4,6 +4,11 @@
 
 ## https://www.mssqltips.com/sqlservertip/4054/creating-a-date-dimension-or-calendar-table-in-sql-server/
 
+
+## changes
+####Added parameters handling
+####Added strip spaces function of TCX files
+
 import os
 import argparse
 import datetime
@@ -35,7 +40,7 @@ parser.add_argument("--ignore-existing", action="store_true", help="skip files t
 parser.add_argument("--exclude", help="files to exclude")
 parser.add_argument("SourceFolder", help="Source location for Strava files")
 parser.add_argument("TargetFolder", help="Target location for converted TCX to GPX Strava files")
-parser.add_argument("DBHost", help="Destination database server")
+parser.add_argument("DBHost", help="Destination database server - DESKTOP-5QTQUJH\\DEV_INSTANCE is the dev laptop, DESKTOP-A6J6D7Q\\LEROYB_INSTANCE is the desktop")
 parser.add_argument("DBName", help="Destination database name")
 args = parser.parse_args()
 config = vars(args)
@@ -65,11 +70,14 @@ print(target_folder)
 FileOperations.unGZipTheFiles(Source_Folder, target_folder, "No")
 #FileOperations.convertTheFilesFromTCX(target_folder)
 
-## import activities overview
-ImportFilesIntoDB.importActivitiesFileIntoDB(Source_Folder + r'\\activities.csv')
+# Cleanup TCX files which tend to have rogue spaces at the beginning of the file contents when exporting from Strava
+FileOperations.CleanTCXFiles(target_folder)
+
+## import activities overview (file_name, server_name, db_name, schema_name, table_name)
+ImportFilesIntoDB.importActivitiesFileIntoDB(Source_Folder + r'\activities.csv', r'DESKTOP-A6J6D7Q\LEROYB_INSTANCE', 'Tracks', 'STG', 'Activities')
 
 ## now import all gpx files into staging table
-#ImportFilesIntoDB.ImportGPXFileIntoDB(target_folder)
+ImportFilesIntoDB.ImportGPXFileIntoDB(target_folder, r'DESKTOP-A6J6D7Q\LEROYB_INSTANCE', 'Tracks', 'STG', 'GPXFiles')
 
 print('-'*40)
 print ('End Program')
